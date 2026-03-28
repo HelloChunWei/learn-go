@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"hello-go/internal/request"
 	"io"
 	"log"
 	"net"
@@ -52,9 +53,16 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		for line := range getLinesChannel(connect) {
-			fmt.Printf("read: %s\n", line)
+		requestData, err := request.RequestFromReader(connect)
+		if err != nil {
+			log.Printf("parse request: %v", err)
+			connect.Close()
+			continue
 		}
+		fmt.Printf("Request line:\n")
+		fmt.Printf("- Method: %s\n", requestData.RequestLine.Method)
+		fmt.Printf("- Target: %s\n", requestData.RequestLine.RequestTarget)
+		fmt.Printf("- Version: %s\n", requestData.RequestLine.HttpVersion)
 	}
 	// filePath := "messages.txt"
 	// file, err := os.Open(filePath)
