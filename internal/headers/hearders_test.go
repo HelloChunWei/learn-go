@@ -19,6 +19,16 @@ func TestHearderparse(t *testing.T) {
 	assert.Equal(t, 25, n)
 	assert.True(t, done)
 
+	// // Test: muitlple value
+	headers = NewHeaders()
+	data = []byte("Set-Person: lane-loves-go\r\nSet-Person: prime-loves-zig\r\nSet-Person: tj-loves-ocaml\r\n\r\n")
+	n, done, err = headers.Parse(data)
+	require.NoError(t, err)
+	require.NotNil(t, headers)
+	assert.Equal(t, "", headers.get("dasdsad"))
+	assert.Equal(t, "lane-loves-go,prime-loves-zig,tj-loves-ocaml", headers.get("Set-Person"))
+	assert.True(t, done)
+
 	// Test: Invalid spacing header
 	headers = NewHeaders()
 	data = []byte("       Host : localhost:42069       \r\n\r\n")

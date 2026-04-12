@@ -24,7 +24,12 @@ func (h *Headers) get(name string) string {
 }
 
 func (h *Headers) set(name, value string) {
-	h.headers[strings.ToLower(name)] = value
+	lowerName := strings.ToLower(name)
+	if v, ok := h.headers[lowerName]; ok {
+		h.headers[strings.ToLower(name)] = v + "," + value
+	} else {
+		h.headers[strings.ToLower(name)] = value
+	}
 }
 
 var ERROR_BAD_HEADER = fmt.Errorf("bad header")
