@@ -63,6 +63,10 @@ func main() {
 		fmt.Printf("- Method: %s\n", requestData.RequestLine.Method)
 		fmt.Printf("- Target: %s\n", requestData.RequestLine.RequestTarget)
 		fmt.Printf("- Version: %s\n", requestData.RequestLine.HttpVersion)
+		fmt.Printf("Headers:\n")
+		requestData.Headers.ForEach(func(n, v string) {
+			fmt.Printf("- %s: %s\n", n, v)
+		})
 	}
 	// filePath := "messages.txt"
 	// file, err := os.Open(filePath)
