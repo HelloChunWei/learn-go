@@ -24,7 +24,7 @@ func (h *Headers) Get(name string) (string, bool) {
 	return val, ok
 }
 
-func (h *Headers) set(name, value string) {
+func (h *Headers) Set(name, value string) {
 	lowerName := strings.ToLower(name)
 	if v, ok := h.headers[lowerName]; ok {
 		h.headers[strings.ToLower(name)] = v + "," + value
@@ -87,7 +87,7 @@ func (h *Headers) Parse(data []byte) (int, bool, error) {
 			return 0, false, err
 		}
 		read += idx + len(SEPARATOR)
-		h.set(key, value)
+		h.Set(key, value)
 	}
 	return read, done, nil
 
