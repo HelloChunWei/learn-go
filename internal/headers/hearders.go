@@ -19,8 +19,9 @@ func NewHeaders() *Headers {
 	}
 }
 
-func (h *Headers) Get(name string) string {
-	return h.headers[strings.ToLower(name)]
+func (h *Headers) Get(name string) (string, bool) {
+	val, ok := h.headers[strings.ToLower(name)]
+	return val, ok
 }
 
 func (h *Headers) set(name, value string) {

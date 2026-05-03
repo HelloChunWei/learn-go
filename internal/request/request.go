@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hello-go/internal/headers"
 	"io"
+	"strconv"
 )
 
 type parseState string
@@ -13,6 +14,7 @@ const (
 	stateInit    parseState = "init"
 	stateDone    parseState = "done"
 	stateHeaders parseState = "headers"
+	stateBody    parseState = "body"
 	stateError   parseState = "error"
 )
 
@@ -26,12 +28,26 @@ type Request struct {
 	RequestLine RequestLine
 	Headers     *headers.Headers
 	state       parseState
+	Body        string
+}
+
+func getInt(header *headers.Headers, name string, defaultValue int) int {
+	strValue, ok := header.Get(name)
+	if !ok {
+		return defaultValue
+	}
+	value, err := strconv.Atoi(strValue)
+	if err != nil {
+		return defaultValue
+	}
+	return value
 }
 
 func newRequest() *Request {
 	return &Request{
 		state:   stateInit,
 		Headers: headers.NewHeaders(),
+		Body:    "",
 	}
 }
 
@@ -43,11 +59,19 @@ func (r *Request) error() bool {
 	return r.state == stateError
 }
 
+func (r *Request) hasBody() bool {
+	len := getInt(r.Headers, "content-length", 0)
+	return len > 0
+}
+
 func (r *Request) parse(data []byte) (int, error) {
 	read := 0
 outer:
 	for {
 		currentData := data[read:]
+		if len(currentData) == 0 {
+			break outer
+		}
 		switch r.state {
 		case stateError:
 			return 0, ERROR_REQUEST_IN_ERROR
@@ -74,9 +98,25 @@ outer:
 			}
 			read += n
 			if done {
-				r.state = stateDone
+				if r.hasBody() {
+					r.state = stateBody
+				} else {
+					r.state = stateDone
+				}
 			}
 
+		case stateBody:
+			contentLen := getInt(r.Headers, "content-length", 0)
+			if contentLen == 0 {
+				panic("content length is 0")
+			}
+			// parse the body
+			remaining := min(contentLen-len(r.Body), len(currentData))
+			r.Body += string(currentData[:remaining])
+			read += remaining
+			if len(r.Body) == contentLen {
+				r.state = stateDone
+			}
 		case stateDone:
 			break outer
 		}
