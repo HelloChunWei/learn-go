@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"fmt"
 	"hello-go/internal/request"
 	"hello-go/internal/response"
@@ -19,7 +18,7 @@ type HandlerError struct {
 	Message    string
 }
 
-type Handler func(w io.Writer, req *request.Request) *HandlerError
+type Handler func(w *response.Writer, req *request.Request)
 
 func runServer(s *Server, listener net.Listener) {
 	for {
@@ -37,27 +36,15 @@ func runServer(s *Server, listener net.Listener) {
 
 func runConnection(s *Server, conn io.ReadWriteCloser) {
 	defer conn.Close()
+	responseWriter := response.NewWriter(conn)
 	header := response.GetDefaultHeaders(0)
 	req, err := request.RequestFromReader(conn)
 	if err != nil {
-		response.WriteStatusLine(conn, response.StatusBadRequest)
-		response.WriteHeaders(conn, header)
+		responseWriter.WriteStatusLine(response.StatusBadRequest)
+		responseWriter.WriteHeaders(header)
 		return
 	}
-	writer := bytes.NewBuffer([]byte{})
-	handlerError := s.handler(writer, req)
-	var body []byte = nil
-	statusCode := response.StatusOk
-	if handlerError != nil {
-		statusCode = handlerError.StatusCode
-		body = []byte(handlerError.Message)
-	} else {
-		body = writer.Bytes()
-	}
-	header.Replace("Content-length", fmt.Sprintf("%d", len(body)))
-	response.WriteStatusLine(conn, statusCode)
-	response.WriteHeaders(conn, header)
-	conn.Write(body)
+	s.handler(responseWriter, req)
 }
 
 func Serve(port int, handler Handler) (*Server, error) {
