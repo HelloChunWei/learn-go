@@ -120,7 +120,7 @@ func (this *TrieMap) LongestPrefixOf(key string) string {
 	maxLen := 0
 	for i := 0; i < len(key); i++ {
 		if node == nil {
-			return ""
+			break
 		}
 		if node.Val != nil {
 			maxLen = i
