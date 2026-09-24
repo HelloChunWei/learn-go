@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"fmt"
 )
 
@@ -76,34 +77,35 @@ func (pq *SimpleMinPQ) sink(node int) {
 	}
 }
 
-type IntHeap []int
+type MinIntHeap []int
 
-func (h IntHeap) Len() int {
-	return len(h)
+func (h MinIntHeap) Len() int { return len(h) }
+func (h MinIntHeap) Swap(i, j int) {
+	h[i], h[j] = h[j], h[i]
 }
-
-func (h IntHeap) Less(i, j int) bool {
+func (h MinIntHeap) Less(i, j int) bool {
 	return h[i] < h[j]
 }
 
-func (h IntHeap) Swap(i, j int) {
-	h[i], h[j] = h[j], h[i]
+func (h *MinIntHeap) Push(x any) {
+	(*h) = append((*h), x.(int))
 }
 
-func (h *IntHeap) Push(x any) {
-	*h = append(*h, x.(int))
-}
-
-func (h *IntHeap) Pop() any {
+func (h *MinIntHeap) Pop() any {
 	old := *h
 	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
-
+	res := old[n-1]
+	*h = old[:n-1]
+	return res
 }
 
 func main() {
+	minIntHeap := &MinIntHeap{}
+	heap.Init(minIntHeap)
+	heap.Push(minIntHeap, 1)
+	heap.Push(minIntHeap, 3)
+	x := heap.Pop(minIntHeap).(int)
+	fmt.Printf("x %v\n", x)
 	pq := &SimpleMinPQ{
 		[]int{},
 		0,
